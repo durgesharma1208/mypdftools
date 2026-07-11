@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPT to PDF</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+<h1><a href="index.html" style="color:white;text-decoration:none;">MyPDFTools</a></h1>
+</nav>
+
+<div class="container">
+
+<h2>PPT to PDF</h2>
+<p>Convert PowerPoint files into PDF.</p>
+
+<a href="index.html">
+<button type="button">← Back to Home</button>
+</a>
+
+<br><br>
+
+<form action="/ppt-to-pdf" method="POST" enctype="multipart/form-data">
+
+<div class="drop-zone"
+onclick="document.getElementById('pptFile').click()">
+
+<p>📽 Upload PPT File</p>
+
+<input
+id="pptFile"
+type="file"
+name="pptFile"
+accept=".ppt,.pptx"
+hidden
+required>
+
+<div id="fileList"></div>
+
+</div>
+
+<br>
+
+<button type="submit">
+Convert to PDF
+</button>
+
+</form>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="script.js"></script>
+</body>
+</html>

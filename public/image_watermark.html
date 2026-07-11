@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Watermark</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <h1>
+        <a href="index.html"
+        style="color:white;text-decoration:none;">
+        📄 MyPDFTools
+        </a>
+    </h1>
+</nav>
+
+<div class="container">
+
+<h2>🖼️ Image Watermark</h2>
+
+<form
+action="/image-watermark"
+method="POST"
+enctype="multipart/form-data">
+
+<input
+type="file"
+name="pdfFile"
+accept=".pdf"
+required>
+
+<br><br>
+
+<input
+type="file"
+name="logo"
+accept=".png"
+required>
+
+<br><br>
+
+<label>Logo Size (px)</label><br>
+
+<input
+type="number"
+name="size"
+value="120"
+min="30"
+max="400">
+
+<br><br>
+
+<label>Position</label><br>
+
+<select name="position">
+    <option value="center">Center</option>
+    <option value="top-left">Top Left</option>
+    <option value="top-right">Top Right</option>
+    <option value="bottom-left">Bottom Left</option>
+    <option value="bottom-right">Bottom Right</option>
+</select>
+
+<br><br>
+<div id="pdfPreview"></div>
+
+<canvas id="pdfCanvas" style="
+max-width:100%;
+margin-top:20px;
+border-radius:12px;
+display:none;
+"></canvas>
+
+<button type="submit">
+Add Image Watermark
+</button>
+
+</form>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="script.js"></script>
+</body>
+</html>

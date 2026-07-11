@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JPG to PDF | MyPDFTools</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <h1>
+        <a href="index.html" style="color:white;text-decoration:none;">
+            MyPDFTools
+        </a>
+    </h1>
+</nav>
+
+<div class="container">
+
+    <h2>🖼 JPG to PDF</h2>
+
+    <p>Select one or more JPG images.</p>
+
+    <a href="index.html">
+        <button type="button">
+            ← Back to Home
+        </button>
+    </a>
+
+    <br><br>
+
+    <form action="/jpgtopdf" method="POST" enctype="multipart/form-data">
+
+        <div class="drop-zone" onclick="document.getElementById('pdfFile').click()">
+    <p>📂 Drag & Drop PDF Here</p>
+    <p>or Click to Upload</p>
+
+    <input
+        id="pdfFile"
+        type="file"
+        name="pdfFile"
+        accept=".pdf"
+        required
+        hidden>
+
+    <div class="file-list" id="fileList"></div>
+</div>
+
+        <br><br>
+
+        <button type="submit">
+            Convert to PDF
+        </button>
+
+    </form>
+    <div class="loader" id="loader"></div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="script.js"></script>
+</body>
+</html>

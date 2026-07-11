@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merge PDF | MyPDFTools</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav>
+    <h1>
+        <a href="index.html" style="color:white;text-decoration:none;">
+            MyPDFTools
+        </a>
+    </h1>
+</nav>
+
+    <div class="container">
+
+        <h2>Merge PDF Files</h2>
+        <p>Select multiple PDF files and merge them into one.</p>
+<a href="index.html">
+    <button type="button">
+        ← Back to Home
+    </button>
+</a>
+
+<br><br>
+        <form <form id="uploadForm" action="/merge" method="POST" enctype="multipart/form-data">
+
+    <label class="drop-area" for="pdfInput">
+
+        <h2>📄 Drop PDF Files Here</h2>
+        <p>or Click to Select Files</p>
+
+        <div class="drop-zone" onclick="document.getElementById('pdfs').click()">
+    <p>📂 Drag & Drop PDFs Here</p>
+    <p>or Click to Upload</p>
+
+    <input
+        id="pdfs"
+        type="file"
+        name="pdfs"
+        multiple
+        accept=".pdf"
+        required
+        hidden>
+
+    <div class="file-list" id="fileList"></div>
+</div>
+
+    </label>
+
+    <div id="fileList"></div>
+<div id="pdfPreview"></div>
+
+<canvas id="pdfCanvas" style="
+max-width:100%;
+margin-top:20px;
+border-radius:12px;
+display:none;
+"></canvas>
+    <br>
+
+    <button type="submit">
+        Merge PDFs
+    </button>
+
+</form>
+<div class="loader" id="loader"></div>
+
+    </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="script.js"></script>
+
+</body>
+</html>

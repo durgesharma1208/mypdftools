@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word to PDF | MyPDFTools</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <h1>
+        <a href="index.html" style="color:white;text-decoration:none;">
+            MyPDFTools
+        </a>
+    </h1>
+</nav>
+
+<div class="container">
+
+    <h2>Word to PDF Converter</h2>
+
+    <p>
+        Convert DOC and DOCX files into high-quality PDF documents.
+    </p>
+
+    <a href="index.html">
+        <button type="button">
+            ← Back to Home
+        </button>
+    </a>
+
+    <br><br>
+
+    <form
+        id="uploadForm"
+        action="/word-to-pdf"
+        method="POST"
+        enctype="multipart/form-data">
+
+        <label class="drop-area">
+
+            <h2>📄 Drop Word File Here</h2>
+
+            <p>or Click to Select File</p>
+
+            <div class="drop-zone"
+                 onclick="document.getElementById('wordFile').click()">
+
+                <p>📂 Drag & Drop DOC/DOCX Here</p>
+
+                <p>or Click to Upload</p>
+
+                <input
+                    id="wordFile"
+                    type="file"
+                    name="wordFile"
+                    accept=".doc,.docx"
+                    required
+                    hidden>
+
+                <div
+                    class="file-list"
+                    id="fileList">
+                </div>
+
+            </div>
+
+        </label>
+
+        <br>
+
+        <button type="submit">
+            Convert to PDF
+        </button>
+
+    </form>
+
+    <div class="loader" id="loader"></div>
+
+</div>
+<script src="script.js"></script>
+<script>
+
+const input =
+document.getElementById("wordFile");
+
+const fileList =
+document.getElementById("fileList");
+
+input.addEventListener(
+"change",
+function(){
+
+if(this.files.length>0){
+
+fileList.innerHTML =
+"📄 " +
+this.files[0].name;
+
+}
+
+}
+);
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="script.js"></script>
+</body>
+</html>
