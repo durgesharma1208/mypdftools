@@ -1,3 +1,29 @@
+# Dependencies
 node_modules/
-uploads/
+frontend/node_modules/
+
+# Build output
+dist/
+frontend/dist/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Secrets & local config
 .env
+.env.local
+
+# Runtime artifacts (backend temp/output)
+backend/temp/
+backend/output/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
