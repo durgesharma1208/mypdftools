@@ -1,51 +1,85 @@
-import { forwardRef, type ButtonHTMLAttributes } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { Link, type LinkProps } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { Spinner } from './Spinner';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
-type Size = 'sm' | 'md' | 'lg';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'quiet' | 'danger';
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant;
-  size?: Size;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   loading?: boolean;
   full?: boolean;
+  icon?: ReactNode;
 }
 
-const variantClasses: Record<Variant, string> = {
+const VARIANT: Record<ButtonVariant, string> = {
   primary:
-    'bg-brand-gradient text-white shadow-sm shadow-brand-500/25 hover:shadow-lg hover:shadow-brand-500/30 hover:brightness-110 active:brightness-95',
+    'bg-accent text-accent-fg shadow-[0_1px_2px_rgb(16_17_20_/_0.12)] hover:bg-accent-strong active:translate-y-px',
   secondary:
-    'border border-surface-line bg-surface text-zinc-700 hover:bg-surface-panel hover:text-zinc-900 dark:border-surface-line-dark dark:bg-surface-dark dark:text-zinc-200 dark:hover:bg-surface-panel dark:hover:text-white',
-  ghost: 'text-zinc-600 hover:bg-black/5 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white',
-  danger: 'bg-rose-600 text-white hover:bg-rose-500',
+    'border border-line bg-surface text-ink hover:border-line-strong hover:bg-surface-muted active:translate-y-px',
+  ghost: 'text-ink-muted hover:bg-surface-muted hover:text-ink',
+  quiet: 'text-accent hover:bg-accent-soft',
+  danger: 'border border-critical/30 bg-critical-soft text-critical hover:border-critical/60',
 };
 
-const sizeClasses: Record<Size, string> = {
-  sm: 'h-8 px-3 text-xs gap-1.5 rounded-lg',
-  md: 'h-10 px-4 text-sm gap-2 rounded-xl',
-  lg: 'h-12 px-6 text-[15px] gap-2 rounded-xl',
+const SIZE: Record<ButtonSize, string> = {
+  sm: 'h-8 gap-1.5 rounded-sm px-3 text-[13px]',
+  md: 'h-10 gap-2 rounded-md px-4 text-sm',
+  lg: 'h-12 gap-2 rounded-md px-5 text-[15px]',
 };
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'secondary', size = 'md', loading, disabled, children, full, ...props }, ref) => (
+const BASE =
+  'inline-flex select-none items-center justify-center whitespace-nowrap font-medium tracking-[-0.01em] transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-out';
+
+/** Shared class builder so links and buttons stay visually identical. */
+export function buttonClasses(variant: ButtonVariant = 'secondary', size: ButtonSize = 'md', className?: string): string {
+  return cn(BASE, SIZE[size], VARIANT[variant], className);
+}
+
+interface ButtonLinkProps extends LinkProps {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  full?: boolean;
+  icon?: ReactNode;
+  children: ReactNode;
+}
+
+/** Same visual language as <Button>, rendered as a router link. */
+export function ButtonLink({ variant, size, full, icon, className, children, ...props }: ButtonLinkProps) {
+  return (
+    <Link className={buttonClasses(variant, size, cn(full && 'w-full', className))} {...props}>
+      {icon}
+      {children}
+    </Link>
+  );
+}
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { className, variant = 'secondary', size = 'md', loading = false, full = false, icon, children, disabled, ...props },
+  ref,
+) {
+  const isDisabled = disabled || loading;
+
+  return (
     <button
       ref={ref}
-      disabled={disabled || loading}
+      type={props.type ?? 'button'}
+      aria-busy={loading || undefined}
+      disabled={isDisabled}
       className={cn(
-        'inline-flex items-center justify-center font-semibold transition-all duration-150 select-none',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        BASE,
+        'disabled:cursor-not-allowed disabled:opacity-45',
         full && 'w-full',
-        variantClasses[variant],
-        sizeClasses[size],
+        SIZE[size],
+        VARIANT[variant],
         className,
       )}
       {...props}
     >
-      {loading && <Spinner className="h-4 w-4" />}
+      {loading ? <Spinner className="h-4 w-4" /> : icon}
       {children}
     </button>
-  ),
-);
-
-Button.displayName = 'Button';
+  );
+});

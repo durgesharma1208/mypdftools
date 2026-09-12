@@ -2,60 +2,155 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------------------------------------------------------------------------
+   Design tokens
+   Light: warm paper neutrals with a deep pine accent.
+   Dark: near-black graphite surfaces with a lifted mint accent.
+   Channels are stored space separated for Tailwind's opacity modifier.
+--------------------------------------------------------------------------- */
+:root {
+  --c-canvas: 250 249 246;
+  --c-surface: 255 255 255;
+  --c-surface-muted: 244 242 237;
+  --c-line: 228 224 217;
+  --c-line-strong: 206 200 190;
+  --c-ink: 23 24 26;
+  --c-ink-muted: 88 87 83;
+  --c-ink-subtle: 110 108 102;
+  --c-ink-inverse: 255 255 255;
+  --c-accent: 17 105 90;
+  --c-accent-strong: 12 84 72;
+  --c-accent-soft: 233 243 239;
+  --c-accent-fg: 255 255 255;
+  --c-positive: 22 108 69;
+  --c-positive-soft: 233 245 238;
+  --c-caution: 138 79 9;
+  --c-caution-soft: 251 243 231;
+  --c-critical: 164 44 40;
+  --c-critical-soft: 252 238 236;
+  --ring-color: 17 105 90;
+  --shadow-hairline: 0 1px 0 0 rgb(var(--c-line) / 1);
+}
+
+.dark {
+  --c-canvas: 14 15 16;
+  --c-surface: 21 22 24;
+  --c-surface-muted: 28 30 33;
+  --c-line: 40 42 46;
+  --c-line-strong: 60 63 69;
+  --c-ink: 237 236 232;
+  --c-ink-muted: 168 166 160;
+  --c-ink-subtle: 130 128 123;
+  --c-ink-inverse: 14 15 16;
+  --c-accent: 93 199 176;
+  --c-accent-strong: 138 224 205;
+  --c-accent-soft: 24 46 41;
+  --c-accent-fg: 8 27 23;
+  --c-positive: 112 202 156;
+  --c-positive-soft: 20 41 31;
+  --c-caution: 226 170 92;
+  --c-caution-soft: 46 36 18;
+  --c-critical: 240 140 134;
+  --c-critical-soft: 47 26 24;
+  --ring-color: 93 199 176;
+}
+
 @layer base {
+  * {
+    border-color: rgb(var(--c-line));
+  }
+
   html {
-    scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
-    @apply bg-surface-panel text-zinc-800 antialiased dark:bg-surface-dark dark:text-zinc-100;
-    font-feature-settings: 'cv11', 'ss01';
+    @apply bg-canvas text-ink antialiased;
+    font-feature-settings: 'cv05' 1, 'ss01' 1;
+    font-variant-ligatures: contextual;
   }
 
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-ink;
+    text-wrap: balance;
+  }
+
+  /* One consistent focus treatment for every interactive element. */
   :focus-visible {
-    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-surface-panel dark:ring-offset-surface-dark;
+    outline: 2px solid rgb(var(--ring-color) / 0.9);
+    outline-offset: 2px;
+    border-radius: 6px;
   }
 
   ::selection {
-    @apply bg-brand-500/25;
+    background-color: rgb(var(--c-accent) / 0.22);
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  select {
+    background-image: none;
+  }
+
+  /* Numeric UI (file sizes, page numbers) stays aligned. */
+  .tabular,
+  time,
+  output {
+    font-variant-numeric: tabular-nums;
   }
 
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
-      animation-duration: 0.01ms !important;
+      animation-duration: 0.001ms !important;
       animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      transition-duration: 0.001ms !important;
       scroll-behavior: auto !important;
     }
   }
 }
 
 @layer components {
-  .card-surface {
-    @apply rounded-2xl border border-surface-line bg-surface shadow-soft dark:border-surface-line-dark dark:bg-surface-dark;
+  /* Flat, hairline-bordered surface — the only "card" in the system. */
+  .panel {
+    @apply rounded-lg border border-line bg-surface;
   }
 
-  .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-surface-line bg-surface px-2.5 py-1 text-xs font-medium text-zinc-600 dark:border-surface-line-dark dark:bg-surface-dark dark:text-zinc-300;
+  .panel-inset {
+    @apply rounded-md border border-line bg-surface-muted;
   }
 
-  .icon-tile {
-    @apply inline-flex h-10 w-10 items-center justify-center rounded-xl text-brand-600 dark:text-brand-300;
+  .eyebrow {
+    @apply text-2xs font-semibold uppercase tracking-[0.14em] text-ink-subtle;
+  }
+
+  .link {
+    @apply font-medium text-accent underline decoration-accent/30 decoration-1 underline-offset-[3px] transition-colors hover:decoration-accent;
+  }
+
+  .input-base {
+    @apply w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink transition-colors
+      placeholder:text-ink-subtle hover:border-line-strong focus:border-accent focus:outline-none;
+  }
+
+  .surface-grid {
+    background-image: radial-gradient(rgb(var(--c-line-strong) / 0.55) 1px, transparent 1px);
+    background-size: 22px 22px;
   }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .glass {
-    @apply bg-surface/75 backdrop-blur-xl dark:bg-surface-dark/75;
-  }
-
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -65,22 +160,29 @@
     scrollbar-width: none;
   }
 
-  .shimmer {
-    position: relative;
-    overflow: hidden;
+  .text-wrap-pretty {
+    text-wrap: pretty;
   }
 
-  .shimmer::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-    animation: shimmer 1.6s infinite;
+  .drag-none {
+    -webkit-user-drag: none;
+    user-select: none;
   }
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(113, 113, 122, 0.4) transparent;
+  scrollbar-color: rgb(var(--c-line-strong)) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+  background-color: rgb(var(--c-line-strong));
 }
