@@ -1,3 +1,4 @@
+from app.core.config import settings
 from app.services.discovery import find_ghostscript, find_libreoffice
 
 
@@ -24,3 +25,23 @@ def test_health_includes_ghostscript_status(client):
     dependencies = response.json()["dependencies"]
     ghostscript = next(d for d in dependencies if "ghostscript" in d["label"])
     assert ghostscript["available"] == (find_ghostscript() is not None)
+
+def test_health_reports_upload_limits(client):
+    body = client.get("/api/health").json()
+    assert body["limits"]["max_file_size_mb"] == settings.max_file_size_mb
+    assert body["limits"]["max_files"] == settings.max_files
+
+
+def test_health_reports_feature_flags(client):
+    body = client.get("/api/health").json()
+    features = body["features"]
+    assert features["pdf_engine"] is True
+    assert features["office"] == (find_libreoffice() is not None)
+    assert features["ghostscript"] == (find_ghostscript() is not None)
+
+
+def test_health_response_contains_no_system_paths(client):
+    body = client.get("/api/health").json()
+    serialized = str(body)
+    assert "/usr/" not in serialized
+    assert "C:\\" not in serialized

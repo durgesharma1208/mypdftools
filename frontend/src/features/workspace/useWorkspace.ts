@@ -1,131 +1,101 @@
-import { useCallback, useMemo, useState } from 'react';
-import type { Tool, UploadedFile, UploadResult, WorkspaceStatus } from '../../types';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import type { Tool, UploadResult, UploadedFile, WorkspacePhase } from '../../types';
+import { ApiError, isAbortError, uploadForm } from '../../lib/api';
 import { downloadBlob, formatBytes, uniqueId } from '../../lib/utils';
-import { pdfjsLib } from '../../lib/pdf';
-import { uploadForm } from '../../services/api';
+import {
+  defaultParams,
+  partitionFiles,
+  validateSubmission,
+  visibleParams,
+  type ParamMap,
+  type ParamValue,
+  type UploadLimits,
+} from '../../lib/validation';
 
-const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
-const MAX_UPLOAD_LABEL = '50 MB';
-
-export type ParamValue = string | number | boolean;
-
-type ParamMap = Record<string, ParamValue>;
-
-export function acceptsFile(tool: Tool, file: File): boolean {
-  const name = file.name.toLowerCase();
-  switch (tool.kind) {
-    case 'pdf':
-      return name.endsWith('.pdf') || file.type === 'application/pdf';
-    case 'image':
-      return /\.(jpe?g|png)$/.test(name) || file.type.startsWith('image/');
-    case 'word':
-      return /\.(doc|docx)$/.test(name);
-    case 'excel':
-      return /\.(xls|xlsx|ods|csv)$/.test(name);
-    case 'ppt':
-      return /\.(ppt|pptx|odp)$/.test(name);
-  }
+interface UseWorkspaceOptions {
+  tool: Tool;
+  limits: UploadLimits;
+  onFilesChanged?: () => void;
 }
 
-export function buildFileItem(file: File): UploadedFile {
-  return { id: uniqueId(), file, size: file.size, sizeLabel: formatBytes(file.size) };
+function toFileItems(files: File[]): UploadedFile[] {
+  return files.map((file) => ({ id: uniqueId(), file, sizeLabel: formatBytes(file.size) }));
 }
 
-export function validateIncomingFile(tool: Tool, file: File): string | null {
-  if (!acceptsFile(tool, file)) {
-    return `"${file.name}" isn't supported. Please upload ${tool.filesLabel.toLowerCase()} only.`;
-  }
-  if (file.size > MAX_UPLOAD_BYTES) {
-    return `"${file.name}" exceeds the maximum supported size of ${MAX_UPLOAD_LABEL}.`;
-  }
-  return null;
-}
-
-function defaultParams(tool: Tool): ParamMap {
-  const params: ParamMap = {};
-  for (const param of tool.params ?? []) {
-    params[param.name] = param.default ?? (param.type === 'checkbox' ? false : '');
-  }
-  return params;
-}
-
-async function initializeSelection(
-  file: File,
-  tool: Tool,
-  setSelection: (pages: number[]) => void,
-): Promise<void> {
-  try {
-    const buffer = await file.arrayBuffer();
-    const document = await pdfjsLib.getDocument({ data: buffer }).promise;
-    const count = document.numPages;
-    document.destroy();
-    if (tool.preview === 'order' && count > 0) {
-      setSelection(Array.from({ length: count }, (_, index) => index + 1));
-    }
-  } catch {
-    return;
-  }
-}
-
-export function useWorkspace(tool: Tool) {
+/**
+ * State machine behind every tool workspace: file selection, client-side
+ * validation, the upload/generate/download lifecycle and reset behaviour.
+ */
+export function useWorkspace({ tool, limits, onFilesChanged }: UseWorkspaceOptions) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [params, setParams] = useState<ParamMap>(() => defaultParams(tool));
   const [logo, setLogo] = useState<File | null>(null);
   const [selection, setSelection] = useState<number[]>([]);
-  const [status, setStatus] = useState<WorkspaceStatus>('idle');
+  const [pageCount, setPageCount] = useState<number | null>(null);
+  const [phase, setPhase] = useState<WorkspacePhase>('idle');
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<UploadResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [originalSize, setOriginalSize] = useState<number>(0);
+  const abortRef = useRef<AbortController | null>(null);
 
-  const maxFiles = tool.maxFiles ?? (tool.multiple ? 10 : 1);
-  const isBusy = status === 'uploading' || status === 'processing' || status === 'preparing';
+  const busy = phase === 'uploading' || phase === 'processing' || phase === 'preparing';
+  const maxFiles = tool.multiple ? Math.min(tool.maxFiles ?? limits.maxFiles, limits.maxFiles) : 1;
 
   const addFiles = useCallback(
-    (incoming: File[], existing: UploadedFile[] = []) => {
-      const combined = [...existing, ...incoming];
-      const exceeded = combined.length > maxFiles;
-
-      for (const file of incoming) {
-        const problem = validateIncomingFile(tool, file);
-        if (problem) {
-          setError(problem);
-          setFiles([]);
-          setStatus('error');
-          return;
-        }
-      }
-
-      if (exceeded) {
-        setError(`Maximum ${maxFiles} file${maxFiles === 1 ? '' : 's'} allowed per request.`);
-        setFiles([]);
-        setStatus('error');
+    (incoming: File[]) => {
+      const { accepted, error: problem } = partitionFiles(tool, incoming, files.length, limits);
+      if (problem) {
+        setError(problem);
+        setPhase('error');
         return;
       }
+      if (accepted.length === 0) return;
 
-      const items = combined.map((item) => {
-        if ('file' in item) return item;
-        return buildFileItem(item);
-      });
-
-      const firstNew = incoming[0] ?? existing[0]?.file;
-      setFiles(items);
-      setError(null);
-      setResult(null);
+      const items = toFileItems(accepted);
+      setFiles((current) => [...current, ...items]);
       setSelection([]);
-      setStatus('ready');
-
-      if ((tool.preview === 'select' || tool.preview === 'order') && tool.kind === 'pdf' && firstNew) {
-        void initializeSelection(firstNew, tool, setSelection);
-      }
+      setPageCount(null);
+      setResult(null);
+      setError(null);
+      setPhase('ready');
+      setOriginalSize(0);
+      onFilesChanged?.();
     },
-    [tool, maxFiles],
+    [files.length, limits, onFilesChanged, tool],
   );
 
   const removeFile = useCallback((id: string) => {
     setFiles((current) => current.filter((item) => item.id !== id));
     setSelection([]);
-    setStatus('idle');
+    setPageCount(null);
+    setResult(null);
     setError(null);
+    setPhase('idle');
+  }, []);
+
+  const clearFiles = useCallback(() => {
+    setFiles([]);
+    setSelection([]);
+    setPageCount(null);
+    setResult(null);
+    setError(null);
+    setPhase('idle');
+  }, []);
+
+  const reorderFile = useCallback((id: string, direction: 'up' | 'down') => {
+    setFiles((current) => {
+      const index = current.findIndex((item) => item.id === id);
+      if (index === -1) return current;
+      const target = direction === 'up' ? index - 1 : index + 1;
+      if (target < 0 || target >= current.length) return current;
+      const next = [...current];
+      const [moved] = next.splice(index, 1);
+      const anchor = next[target];
+      if (!moved || !anchor) return current;
+      next.splice(target, 0, moved);
+      return next;
+    });
   }, []);
 
   const setParam = useCallback((name: string, value: ParamValue) => {
@@ -133,97 +103,142 @@ export function useWorkspace(tool: Tool) {
   }, []);
 
   const reset = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
     setFiles([]);
     setParams(defaultParams(tool));
     setLogo(null);
     setSelection([]);
+    setPageCount(null);
     setResult(null);
     setError(null);
     setProgress(0);
-    setStatus('idle');
+    setOriginalSize(0);
+    setPhase('idle');
   }, [tool]);
 
-  const canSubmit = files.length > 0 && !isBusy && status !== 'done';
+  const cancel = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setProgress(0);
+    setPhase('ready');
+    setError(null);
+  }, []);
+
+  const buildFormData = useCallback(
+    (selectionSnapshot: number[]) => {
+      const formData = new FormData();
+      for (const item of files) formData.append(tool.fileField, item.file);
+
+      for (const param of tool.params ?? []) {
+        if (param.type === 'logo') continue;
+        if (param.auto) {
+          if (selectionSnapshot.length > 0) formData.append(param.name, selectionSnapshot.join(','));
+          continue;
+        }
+        const value = params[param.name];
+        if (value === undefined || value === null || value === '') continue;
+        formData.append(param.name, typeof value === 'boolean' ? String(value) : String(value));
+      }
+
+      if (tool.params?.some((param) => param.type === 'logo') && logo) {
+        formData.append('logo', logo);
+      }
+
+      return formData;
+    },
+    [files, logo, params, tool],
+  );
 
   const submit = useCallback(async () => {
-    if (files.length === 0 || isBusy) return;
+    if (busy) return;
 
-    if (tool.slug === 'image-watermark' && !logo) {
-      setError('Please choose a logo image.');
-      setStatus('error');
+    const problem = validateSubmission(tool, {
+      files: files.map((item) => item.file),
+      params,
+      selection,
+      logo,
+      pageCount,
+    });
+    if (problem) {
+      setError(problem);
+      setPhase('error');
       return;
     }
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setError(null);
     setResult(null);
-    setStatus('uploading');
+    setPhase('uploading');
     setProgress(0);
-
-    const formData = new FormData();
-
-    files.forEach((item) => formData.append(tool.fileField, item.file));
-
-    for (const param of tool.params ?? []) {
-      if (param.auto) {
-        if (selection.length > 0) formData.append(param.name, selection.join(','));
-      } else if (params[param.name] !== undefined && params[param.name] !== '') {
-        formData.append(param.name, String(params[param.name]));
-      }
-    }
-
-    if (logo) formData.append('logo', logo);
+    setOriginalSize(files.reduce((total, item) => total + item.file.size, 0));
 
     try {
-      const upload = await uploadForm(tool.endpoint, formData, (fraction) => {
-        setProgress(fraction);
-        setStatus(fraction >= 1 ? 'processing' : 'uploading');
+      const upload = await uploadForm(tool.endpoint, buildFormData(selection), {
+        signal: controller.signal,
+        onProgress: (fraction) => {
+          setProgress(fraction);
+          setPhase(fraction >= 1 ? 'processing' : 'uploading');
+        },
       });
-      setStatus('preparing');
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      setPhase('preparing');
       setResult(upload);
-      setStatus('done');
+      setPhase('done');
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Something went wrong while processing your file. Please try again.';
+      if (isAbortError(caught)) {
+        setPhase('ready');
+        return;
+      }
+      const message =
+        caught instanceof ApiError
+          ? caught.message
+          : caught instanceof Error
+            ? caught.message
+            : 'Something went wrong while processing your file. Please try again.';
       setError(message);
-      setStatus('error');
+      setPhase('error');
+    } finally {
+      abortRef.current = null;
     }
-  }, [files, logo, params, selection, isBusy, tool]);
+  }, [buildFormData, busy, files, logo, pageCount, params, selection, tool]);
 
   const download = useCallback(() => {
     if (result) downloadBlob(result.blob, result.filename);
   }, [result]);
 
-  const visibleParams = useMemo(
-    () =>
-      (tool.params ?? []).filter(
-        (param) =>
-          !param.auto &&
-          (!param.showWhen || params[param.showWhen.param] === param.showWhen.value) &&
-          param.type !== 'logo',
-      ),
-    [tool, params],
-  );
+  const visible = useMemo(() => visibleParams(tool, params), [params, tool]);
+  const canSubmit = files.length > 0 && !busy && phase !== 'done';
 
   return {
     files,
+    maxFiles,
     params,
+    visibleParams: visible,
     logo,
     selection,
-    maxFiles,
-    setParam,
-    setSelection,
-    setLogo,
-    addFiles,
-    removeFile,
-    reset,
-    submit,
-    download,
-    status,
+    pageCount,
+    phase,
     progress,
     result,
     error,
+    originalSize,
+    busy,
     canSubmit,
-    visibleParams,
-    isBusy,
+    addFiles,
+    removeFile,
+    clearFiles,
+    reorderFile,
+    setParam,
+    setLogo,
+    setSelection,
+    setPageCount,
+    submit,
+    cancel,
+    reset,
+    download,
   };
 }
+
+export type WorkspaceController = ReturnType<typeof useWorkspace>;

@@ -12,7 +12,7 @@ Modern rebuild of the original Express app as a full-stack application:
 
 | Category | Tools |
 | --- | --- |
-| Organization | Merge, Split, Compress, Organize (drag-and-drop page ordering) |
+| Organization | Merge, Split, Compress, Organize (drag-and-drop or keyboard page ordering) |
 | Editing | Rotate, Extract, Delete pages, Text watermark, Logo watermark, Page numbers, Edit metadata |
 | Security | Protect (AES-256), Unlock |
 | Conversion | Word→PDF, Excel→PDF, PowerPoint→PDF (LibreOffice), PDF→Word |
@@ -24,7 +24,7 @@ Modern rebuild of the original Express app as a full-stack application:
 ```
 backend/           FastAPI application
   app/             Settings, services, API routes, utilities
-  tests/           pytest suite (36 tests)
+  tests/           pytest suite (39 tests)
   requirements.txt Runtime dependencies
 frontend/          React + TypeScript + Vite SPA
 scripts/           setup.ps1 / dev.ps1 (Windows)
@@ -103,9 +103,24 @@ Backend settings come from environment variables or a `backend/.env` file
 ## Tests
 
 ```bash
+# Backend unit/integration tests (39 tests)
 cd backend
 .\.venv\Scripts\python.exe -m pytest          # Windows
 python -m pytest                              # macOS/Linux
+
+# Frontend typecheck, lint, unit tests and production build (100 tests)
+cd ../frontend
+npm run typecheck
+npm run lint
+npm test
+npm run build
+```
+
+`scripts/verify_api.py` drives a running API end to end (real uploads, real
+downloads, error cases) and reports per-checks pass/fail:
+
+```bash
+cd backend && ./.venv/bin/python ../scripts/verify_api.py   # API_BASE overrides http://127.0.0.1:8000
 ```
 
 ## Privacy by design

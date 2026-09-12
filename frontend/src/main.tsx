@@ -1,13 +1,28 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import App from './App';
+import '@fontsource-variable/inter/wght.css';
 import './index.css';
+import App from './App';
+import { ThemeProvider } from './hooks/useTheme';
+import { ServerStatusProvider } from './hooks/useServerStatus';
+import { ToastProvider } from './hooks/useToast';
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>,
+const container = document.getElementById('root');
+if (!container) {
+  throw new Error('Root container #root is missing from index.html');
+}
+
+createRoot(container).render(
+  <StrictMode>
+    <ThemeProvider>
+      <ServerStatusProvider>
+        <ToastProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </ToastProvider>
+      </ServerStatusProvider>
+    </ThemeProvider>
+  </StrictMode>,
 );

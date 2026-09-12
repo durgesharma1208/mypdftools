@@ -1,18 +1,18 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 
+/**
+ * pdf.js worker wiring. The worker is bundled by Vite (no CDN request), which
+ * keeps previews offline-capable and avoids loading a third party at runtime.
+ */
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
 
 export { pdfjsLib };
 export type { PDFDocumentProxy };
 
-const PREVIEW_CAP = 120;
+/** Maximum number of thumbnails rendered at once, to keep previews responsive. */
+export const PREVIEW_LIMIT = 120;
 
-export function previewCapExceeded(pages: number): boolean {
-  return pages > PREVIEW_CAP;
-}
-
-export function previewMessage(pages: number): string {
-  if (!previewCapExceeded(pages)) return '';
-  return `This document has ${pages} pages. For performance, only the first ${PREVIEW_CAP} pages are shown below.`;
+export function previewLimitExceeded(pages: number): boolean {
+  return pages > PREVIEW_LIMIT;
 }

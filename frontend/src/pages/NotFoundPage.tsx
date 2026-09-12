@@ -1,22 +1,44 @@
 import { FileQuestion } from 'lucide-react';
+import { ButtonLink } from '../components/ui/Button';
+import { POPULAR_TOOLS } from '../lib/tools';
 import { Link } from 'react-router-dom';
 
 export default function NotFoundPage() {
   return (
-    <div className="mx-auto flex max-w-6xl flex-col items-center px-4 py-24 text-center sm:px-6">
-      <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-300">
-        <FileQuestion className="h-8 w-8" aria-hidden="true" />
+    <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6 sm:py-24">
+      <span className="flex h-10 w-10 items-center justify-center rounded-md border border-line bg-surface-muted text-ink-subtle">
+        <FileQuestion className="h-5 w-5" aria-hidden="true" />
       </span>
-      <h1 className="mt-6 text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">Page not found</h1>
-      <p className="mt-3 max-w-md text-zinc-500 dark:text-zinc-400">
-        The page you are looking for does not exist or has moved. Every PDF tool lives under “Tools”.
+      <h1 className="mt-6 text-headline font-semibold text-ink">This page does not exist</h1>
+      <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-ink-muted text-wrap-pretty">
+        The address may be mistyped, or the page may have moved. Every tool lives in the library.
       </p>
-      <Link
-        to="/"
-        className="mt-8 inline-flex h-12 items-center rounded-xl bg-brand-gradient px-6 text-[15px] font-semibold text-white shadow-sm shadow-brand-500/25 transition-all hover:shadow-lg hover:shadow-brand-500/30 hover:brightness-110"
-      >
-        Back to all tools
-      </Link>
+
+      <div className="mt-7 flex flex-wrap gap-3">
+        <ButtonLink to="/tools" variant="primary">
+          Browse all tools
+        </ButtonLink>
+        <ButtonLink to="/" variant="secondary">
+          Back to home
+        </ButtonLink>
+      </div>
+
+      <div className="mt-10 border-t border-line pt-6">
+        <p className="eyebrow">Popular tools</p>
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {POPULAR_TOOLS.map((tool) => (
+            <li key={tool.slug}>
+              <Link
+                to={`/tools/${tool.slug}`}
+                className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+              >
+                <tool.icon className="h-3.5 w-3.5 text-ink-subtle" aria-hidden="true" />
+                {tool.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
