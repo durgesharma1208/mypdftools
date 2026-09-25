@@ -45,7 +45,23 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        import os
+        from dotenv import dotenv_values
+        env_path = BACKEND_DIR / ".env"
+        origins_str = ""
+        if env_path.exists():
+            vals = dotenv_values(env_path)
+            origins_str = str(vals.get("CORS_ORIGINS") or "").strip()
+        if not origins_str:
+            origins_str = (os.environ.get("CORS_ORIGINS") or self.cors_origins).strip()
+        origins = []
+        for origin in origins_str.split(","):
+            cleaned = origin.strip().rstrip("/")
+            if cleaned:
+                origins.append(cleaned)
+                # Also include both with and without trailing slash for resilience
+                origins.append(f"{cleaned}/")
+        return list(dict.fromkeys(origins)) if origins else ["*"]
 
     @property
     def max_file_size_bytes(self) -> int:
@@ -73,10 +89,10 @@ class Settings(BaseSettings):
         env_path = BACKEND_DIR / ".env"
         if env_path.exists():
             vals = dotenv_values(env_path)
-            key = vals.get("API_KEY")
+            key = vals.get("API_KEY") or vals.get("GEMINI_API_KEY") or vals.get("GOOGLE_API_KEY")
             if key and str(key).strip():
                 return str(key).strip()
-        return (os.environ.get("API_KEY") or self.api_key or "").strip()
+        return (os.environ.get("API_KEY") or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or self.api_key or "").strip()
 
     def get_ai_base_url(self) -> str:
         """Dynamically read AI_BASE_URL. If key is a Gemini key and base URL is default OpenAI, switch to Gemini endpoint."""
@@ -110,9 +126,9 @@ class Settings(BaseSettings):
             model = (os.environ.get("AI_MODEL") or self.ai_model).strip()
 
         key = self.get_api_key()
-        # If user has a Gemini key and model is still gpt-*, auto-default to gemini-3.6-flash
+        # If user has a Gemini key and model is still gpt-*, auto-default to gemini-2.5-flash
         if (key.startswith("AIzaSy") or key.startswith("AQ.")) and model.startswith("gpt-"):
-            return "gemini-3.6-flash"
+            return "gemini-2.5-flash"
 
         return model
 
