@@ -18,6 +18,9 @@ Modern rebuild of the original Express app as a full-stack application:
 | Conversion | Word→PDF, Excel→PDF, PowerPoint→PDF (LibreOffice), PDF→Word |
 | Images | JPG/PNG→PDF, PDF→JPG/PNG |
 | Utility | PDF Inspector (page count, sizes, metadata, text layer, encryption) |
+| OCR | OCR to PDF (searchable PDF), OCR to Text, OCR to Word (.docx) |
+| AI | PDF Summary (grounded structured summary), Ask Questions with PDF (cited Q&A) |
+
 
 ## Project structure
 
@@ -99,12 +102,37 @@ Backend settings come from environment variables or a `backend/.env` file
 | `LIBREOFFICE_PATH` | auto-detect | Override LibreOffice executable |
 | `GHOSTSCRIPT_PATH` | auto-detect | Override Ghostscript executable |
 | `TEMP_DIR` / `OUTPUT_DIR` | `temp` / `output` | Runtime workspace locations |
+| `TESSDATA_DIR` | `tessdata` | Tesseract language models directory |
+| `API_KEY` | *(empty)* | Server-side key for AI intelligence (OpenAI / Groq / OpenRouter) |
+| `AI_MODEL` | `gpt-4o-mini` | Model identifier for summaries and Q&A |
+| `AI_BASE_URL` | `https://api.openai.com/v1` | OpenAI-compatible completions endpoint |
+| `MAX_AI_DOCUMENT_PAGES` | `100` | Maximum pages processed per AI request |
+
+## OCR Features
+
+Native optical character recognition powered by PyMuPDF and Tesseract models without requiring GPU:
+
+- **OCR to PDF**: Generates a searchable PDF by layering an invisible, selectable text layer over the exact original visual layout.
+- **OCR to Text**: Extracts plain text structured by page boundaries (`--- Page 1 ---`, etc.) with one-click copy and `.txt` download.
+- **OCR to Word**: Reconstructs paragraphs, headings, and page breaks into an editable Microsoft Word (`.docx`) file.
+- **Supported Languages**: Built-in support for English (`eng`) and Hindi (`hin`), extensible via `.traineddata` files placed in `backend/tessdata/`.
+- **Intelligent Pre-Check**: Warns users if a PDF already contains selectable digital text before running heavy OCR.
+- **Limitations**: Extremely low-resolution scans, handwritten text, and multi-column tabular data may have degraded recognition quality.
+
+## AI Document Intelligence
+
+Provider-agnostic document analysis using strictly server-side keys:
+
+- **PDF Summary**: Produces structured executive overviews, key takeaways, primary topics, and actionable items. Automatically triggers OCR if the document is scanned.
+- **Ask Questions with PDF**: Conversational Q&A system grounded strictly in document excerpts with page number citations (`Page 2`, `Page 5`). If information cannot be found, it explicitly responds that it could not be found rather than hallucinating.
+- **Privacy & Security**: Uploads are processed in temporary in-memory sessions (auto-expired after 15 minutes) and never saved permanently to disk or database. Prompts contain strict injection guardrails treating document text as untrusted content.
+- **Configuration**: Set `API_KEY` in `backend/.env`. When `API_KEY` is not configured, the rest of the application functions normally and the AI tools display a helpful setup card.
 
 ## Tests
 
 ```bash
 cd backend
-.\.venv\Scripts\python.exe -m pytest          # Windows
+.\.venv\Scripts\python.exe -m pytest          # Windows (49 tests)
 python -m pytest                              # macOS/Linux
 ```
 
@@ -113,5 +141,6 @@ python -m pytest                              # macOS/Linux
 Uploads are validated (magic bytes, size limits), processed in isolated
 temporary workspaces, and deleted automatically after each download. No
 accounts, no database, no long-term storage.
+
 
 See `backend/README.md` and `frontend/README.md` for component details.

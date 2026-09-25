@@ -54,27 +54,26 @@ def validate_file(filename: str, content: bytes, allowed: set[str]) -> None:
 
     kind = detect_kind(content[:16])
 
-    if "pdf" in allowed:
-        if kind != "pdf" or not _ext_in(filename, "pdf"):
-            raise UnsupportedFileError(
-                "This file type isn't supported. Please upload a PDF."
-            )
+    if "pdf" in allowed and kind == "pdf" and _ext_in(filename, "pdf"):
         return
 
-    if "image" in allowed:
-        if kind != "image" or not _ext_in(filename, "image"):
-            raise UnsupportedFileError(
-                "This file type isn't supported. Please upload a JPG or PNG image."
-            )
+    if "image" in allowed and kind == "image" and _ext_in(filename, "image"):
         return
 
     office_kinds = {"word": "a .doc or .docx file", "excel": "an .xls or .xlsx file", "powerpoint": "a .ppt or .pptx file"}
+    for office_kind in ("word", "excel", "powerpoint"):
+        if office_kind in allowed and kind in {"ole", "zip"} and _ext_in(filename, office_kind):
+            return
+
+    if allowed == {"pdf"}:
+        raise UnsupportedFileError("This file type isn't supported. Please upload a PDF.")
+    elif allowed == {"image"}:
+        raise UnsupportedFileError("This file type isn't supported. Please upload a JPG or PNG image.")
+    elif "pdf" in allowed and "image" in allowed:
+        raise UnsupportedFileError("This file type isn't supported. Please upload a PDF or an image (JPG, PNG).")
+
     for office_kind, friendly in office_kinds.items():
         if office_kind in allowed:
-            if kind not in {"ole", "zip"} or not _ext_in(filename, office_kind):
-                raise UnsupportedFileError(
-                    f"This file type isn't supported. Please upload {friendly}."
-                )
-            return
+            raise UnsupportedFileError(f"This file type isn't supported. Please upload {friendly}.")
 
     raise UnsupportedFileError("This file type isn't supported.")

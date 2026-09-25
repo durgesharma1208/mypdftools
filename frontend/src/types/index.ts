@@ -7,15 +7,19 @@ export type CategoryKey =
   | 'convert'
   | 'image'
   | 'office'
-  | 'utility';
+  | 'utility'
+  | 'ocr'
+  | 'ai';
 
 export type InputKind = 'pdf' | 'image' | 'word' | 'excel' | 'ppt';
 
-export type OutputKind = 'pdf' | 'zip' | 'docx' | 'none';
+export type OutputKind = 'pdf' | 'zip' | 'docx' | 'txt' | 'json' | 'chat' | 'summary' | 'none';
+
 
 export type PreviewMode = 'none' | 'view' | 'select' | 'order' | 'first-pages' | 'info' | 'metadata';
 
-export type ToolMode = 'standard' | 'info' | 'metadata';
+export type ToolMode = 'standard' | 'info' | 'metadata' | 'ocr' | 'summary' | 'ask';
+
 
 export interface ToolParam {
   name: string;
@@ -92,4 +96,66 @@ export interface UploadResult {
   filename: string;
   message?: string;
   size: number;
+}
+
+export interface OcrLanguage {
+  code: string;
+  name: string;
+}
+
+export interface OcrTextResult {
+  success: boolean;
+  filename: string;
+  pages: number;
+  text: string;
+  language: string;
+  message?: string;
+}
+
+export interface OcrDetectionResult {
+  has_text_layer: boolean;
+  text_pages: number;
+  total_pages: number;
+  message: string;
+}
+
+export interface AiStatus {
+  configured: boolean;
+  model: string;
+  provider: string;
+  message: string;
+}
+
+export interface AiSource {
+  page: number;
+  snippet: string;
+}
+
+export interface AiSummaryResult {
+  success: boolean;
+  summary: string;
+  key_points: string[];
+  topics: string[];
+  action_items: string[];
+  pages_processed: number;
+  ocr_used: boolean;
+  session_id?: string;
+  notice: string;
+}
+
+export interface AiAskResult {
+  success: boolean;
+  answer: string;
+  sources: AiSource[];
+  ocr_used: boolean;
+  session_id?: string;
+  notice: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  sources?: AiSource[];
+  timestamp: number;
 }

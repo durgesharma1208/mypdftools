@@ -40,6 +40,7 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["Content-Disposition", "X-Result-Message"],
     )
 
     application.include_router(api_router)
@@ -58,7 +59,7 @@ def create_app() -> FastAPI:
     @application.exception_handler(RequestValidationError)
     async def validation_exception_handler(_: Request, exc: RequestValidationError):
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={
                 "error": "Invalid request",
                 "detail": _summarize_validation_error(exc),

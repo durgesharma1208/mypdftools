@@ -2,10 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Google Fonts: Inter ─────────────────────────────────── */
+/* (loaded via index.html <link> tag) */
+
 @layer base {
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
@@ -21,6 +27,26 @@
     @apply bg-brand-500/25;
   }
 
+  /* Custom scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(113, 113, 122, 0.35) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(113, 113, 122, 0.35);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(113, 113, 122, 0.6);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -34,42 +60,80 @@
 }
 
 @layer components {
+  /* ── Surface cards ─────────────────────────────────────── */
   .card-surface {
     @apply rounded-2xl border border-surface-line bg-surface shadow-soft dark:border-surface-line-dark dark:bg-surface-dark;
   }
 
+  .card-surface-elevated {
+    @apply rounded-2xl border border-surface-line bg-surface shadow-card dark:border-surface-line-dark dark:bg-surface-dark;
+  }
+
+  /* ── Chips / badges ────────────────────────────────────── */
   .chip {
     @apply inline-flex items-center gap-1.5 rounded-full border border-surface-line bg-surface px-2.5 py-1 text-xs font-medium text-zinc-600 dark:border-surface-line-dark dark:bg-surface-dark dark:text-zinc-300;
   }
 
+  /* ── Icon tile ─────────────────────────────────────────── */
   .icon-tile {
     @apply inline-flex h-10 w-10 items-center justify-center rounded-xl text-brand-600 dark:text-brand-300;
+  }
+
+  /* ── Input base ────────────────────────────────────────── */
+  .input-base {
+    @apply w-full rounded-xl border border-surface-line bg-surface-panel px-3 py-2 text-sm text-zinc-900 transition-all duration-150 placeholder:text-zinc-400 focus:border-brand-400 focus:outline-none dark:border-surface-line-dark dark:bg-surface-panel-dark dark:text-white dark:placeholder:text-zinc-500 dark:focus:border-brand-400;
+  }
+
+  /* ── Section label pill ─────────────────────────────────── */
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    background-color: rgba(99, 102, 241, 0.08);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #5450e8;
+  }
+  .dark .section-label {
+    border-color: rgba(163, 170, 255, 0.2);
+    background-color: rgba(163, 170, 255, 0.08);
+    color: #a3aaff;
   }
 }
 
 @layer utilities {
+  /* ── Text utilities ────────────────────────────────────── */
   .text-balance {
     text-wrap: balance;
   }
 
+  /* ── Glass / blur effects ──────────────────────────────── */
   .glass {
-    @apply bg-surface/75 backdrop-blur-xl dark:bg-surface-dark/75;
+    @apply bg-surface/80 backdrop-blur-xl dark:bg-surface-dark/80;
+  }
+  .glass-strong {
+    @apply bg-surface/95 backdrop-blur-2xl dark:bg-surface-dark/95;
   }
 
+  /* ── Scrollbar hide ────────────────────────────────────── */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
 
+  /* ── Skeleton shimmer ──────────────────────────────────── */
   .shimmer {
     position: relative;
     overflow: hidden;
   }
-
   .shimmer::after {
     content: '';
     position: absolute;
@@ -78,9 +142,26 @@
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
     animation: shimmer 1.6s infinite;
   }
-}
+  .dark .shimmer::after {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(113, 113, 122, 0.4) transparent;
+  /* ── Gradient text ─────────────────────────────────────── */
+  .gradient-text {
+    @apply bg-gradient-to-r from-brand-600 via-violet-500 to-fuchsia-500 bg-clip-text text-transparent dark:from-brand-400 dark:via-violet-400 dark:to-fuchsia-400;
+  }
+
+  /* ── Hero mesh background ──────────────────────────────── */
+  .hero-bg {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99, 102, 241, 0.13), transparent),
+      radial-gradient(ellipse 40% 40% at 80% 40%, rgba(139, 92, 246, 0.07), transparent),
+      radial-gradient(ellipse 40% 40% at 20% 60%, rgba(99, 102, 241, 0.05), transparent);
+  }
+  .dark .hero-bg {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99, 102, 241, 0.18), transparent),
+      radial-gradient(ellipse 40% 40% at 80% 40%, rgba(139, 92, 246, 0.1), transparent),
+      radial-gradient(ellipse 40% 40% at 20% 60%, rgba(99, 102, 241, 0.07), transparent);
+  }
 }

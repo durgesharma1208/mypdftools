@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Loader2, Upload } from 'lucide-react';
+import { CheckCircle2, Loader2, Upload } from 'lucide-react';
 import type { PdfInfo, Tool, ToolParam, UploadedFile } from '../../types';
 import { cn, downloadBlob, formatBytes } from '../../lib/utils';
 import { fetchPdfInfo, uploadForm } from '../../services/api';
@@ -19,6 +19,9 @@ import {
   validateIncomingFile,
   type ParamValue,
 } from './useWorkspace';
+import { OcrWorkspace } from './OcrWorkspace';
+import { SummaryWorkspace } from './SummaryWorkspace';
+import { AskPdfWorkspace } from './AskPdfWorkspace';
 
 interface WorkspaceProps {
   tool: Tool;
@@ -27,8 +30,12 @@ interface WorkspaceProps {
 export function Workspace({ tool }: WorkspaceProps) {
   if (tool.mode === 'info') return <InfoMode tool={tool} />;
   if (tool.mode === 'metadata') return <MetadataMode tool={tool} />;
+  if (tool.mode === 'ocr') return <OcrWorkspace tool={tool} />;
+  if (tool.mode === 'summary') return <SummaryWorkspace tool={tool} />;
+  if (tool.mode === 'ask') return <AskPdfWorkspace tool={tool} />;
   return <StandardMode tool={tool} />;
 }
+
 
 const ACTION_LABELS: Record<string, string> = {
   merge: 'Merge PDFs',
@@ -83,6 +90,7 @@ function StandardMode({ tool }: WorkspaceProps) {
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      {/* Main area */}
       <section className={cn('min-w-0 space-y-4', busy && 'pointer-events-none opacity-60 transition-opacity')}>
         {file && tool.preview === 'select' && tool.kind === 'pdf' ? (
           <PagePreviewPanel
@@ -117,24 +125,27 @@ function StandardMode({ tool }: WorkspaceProps) {
         )}
       </section>
 
+      {/* Sidebar */}
       <aside className="min-w-0 space-y-4">
         {busy ? (
           <ProcessingCard status={w.status} progress={w.progress} />
         ) : w.status === 'done' && w.result ? (
           <ResultPanel result={w.result} onDownload={w.download} onReset={w.reset} />
         ) : (
-          <div className="card-surface p-5">
-            <div className="mb-4 flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/20 to-violet-500/20 text-brand-600 dark:text-brand-400">
+          <div className="card-surface overflow-hidden">
+            {/* Sidebar tool header */}
+            <div className="flex items-center gap-3 border-b border-surface-line px-5 py-4 dark:border-surface-line-dark">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-gradient text-white shadow-sm shadow-brand-500/20">
                 <Icon className="h-5 w-5" aria-hidden="true" />
               </span>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-semibold text-zinc-900 dark:text-white">{tool.name}</p>
-                <p className="text-xs text-zinc-400 dark:text-zinc-500">{tool.short}</p>
+                <p className="truncate text-xs text-zinc-400 dark:text-zinc-500">{tool.short}</p>
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 p-5">
+              {/* Params */}
               {w.visibleParams.length > 0 && (
                 <div className="space-y-4">
                   {w.visibleParams.map((param) => (
@@ -145,15 +156,16 @@ function StandardMode({ tool }: WorkspaceProps) {
                       onChange={(value: ParamValue) => w.setParam(param.name, value)}
                     />
                   ))}
-
                   {logoParam && <LogoField param={logoParam} onPick={w.setLogo} />}
                 </div>
               )}
 
+              {/* Submit button */}
               <Button variant="primary" size="lg" full disabled={!w.canSubmit} onClick={() => void w.submit()}>
                 {actionLabel ?? `Run ${tool.name}`}
               </Button>
 
+              {/* File count hint */}
               {w.files.length > 0 && (
                 <p className="text-center text-xs text-zinc-400 dark:text-zinc-500">
                   {w.maxFiles === 1
@@ -162,6 +174,7 @@ function StandardMode({ tool }: WorkspaceProps) {
                 </p>
               )}
 
+              {/* Error */}
               {w.status === 'error' && w.error && <Alert>{w.error}</Alert>}
             </div>
           </div>
@@ -178,22 +191,43 @@ function ProcessingCard({ status, progress }: { status: string; progress: number
       : status === 'preparing'
         ? 'Preparing download…'
         : 'Processing PDF…';
+
+  const subLabel =
+    status === 'uploading'
+      ? `${Math.round(progress * 100)}% uploaded`
+      : 'This usually takes a few seconds.';
+
+  const percent = Math.max(8, Math.round(progress * 100));
+
   return (
-    <div className="card-surface animate-scale-in p-5">
-      <div className="flex items-center gap-3">
+    <div className="card-surface animate-scale-in overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-3 border-b border-surface-line px-5 py-4 dark:border-surface-line-dark">
         <Spinner className="h-5 w-5 text-brand-600 dark:text-brand-400" />
         <div className="min-w-0">
           <p className="text-sm font-semibold text-zinc-900 dark:text-white">{label}</p>
-          <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            {status === 'uploading' ? `${Math.round(progress * 100)}%` : 'This usually takes a few seconds.'}
-          </p>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500">{subLabel}</p>
         </div>
       </div>
-      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-surface-panel dark:bg-surface-panel">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-brand-500 to-violet-500 transition-[width] duration-200"
-          style={{ width: `${Math.max(8, Math.round(progress * 100))}%` }}
-        />
+
+      {/* Progress bar */}
+      <div className="p-5">
+        <div className="h-2 overflow-hidden rounded-full bg-surface-panel dark:bg-surface-panel-dark">
+          {status === 'uploading' ? (
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-brand-500 to-violet-500 transition-[width] duration-200"
+              style={{ width: `${percent}%` }}
+            />
+          ) : (
+            /* Indeterminate animation for processing */
+            <div className="relative h-full w-full overflow-hidden rounded-full bg-surface-panel dark:bg-surface-panel-dark">
+              <div className="absolute inset-0 w-1/3 rounded-full bg-gradient-to-r from-brand-500 to-violet-500 animate-progress-indeterminate" />
+            </div>
+          )}
+        </div>
+        {status === 'uploading' && (
+          <p className="mt-2 text-right text-xs font-medium text-zinc-400 dark:text-zinc-500">{percent}%</p>
+        )}
       </div>
     </div>
   );
@@ -226,10 +260,10 @@ function AddMoreFiles({ tool, onFiles }: { tool: Tool; onFiles: (files: File[]) 
         if (dropped.length > 0) onFiles(dropped);
       }}
       className={cn(
-        'flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-3 text-sm font-medium transition-colors',
+        'flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-4 py-3 text-sm font-medium transition-all duration-150',
         dragging
-          ? 'border-brand-500 bg-brand-500/10 text-brand-600 dark:text-brand-400'
-          : 'border-zinc-300 text-zinc-500 hover:border-brand-500/70 hover:text-brand-600 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-brand-500/70 dark:hover:text-brand-400',
+          ? 'border-brand-500 bg-brand-500/8 text-brand-600 dark:text-brand-400'
+          : 'border-zinc-200 text-zinc-500 hover:border-brand-400/60 hover:text-brand-600 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-brand-500/50 dark:hover:text-brand-400',
       )}
     >
       <Upload className="h-4 w-4" aria-hidden="true" />
@@ -253,9 +287,10 @@ function AddMoreFiles({ tool, onFiles }: { tool: Tool; onFiles: (files: File[]) 
 function FirstPagesPreview({ items }: { items: UploadedFile[] }) {
   const visible = items.slice(0, 12);
   return (
-    <div className="card-surface p-4">
-      <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
-        First page preview
+    <div className="card-surface p-5">
+      <h4 className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
+        <CheckCircle2 className="h-3.5 w-3.5 text-brand-500" aria-hidden="true" />
+        Page previews
       </h4>
       <div className="grid grid-cols-[repeat(auto-fill,112px)] gap-3">
         {visible.map((item) => (
@@ -276,7 +311,7 @@ function FirstPageCard({ file, label }: { file: File; label: string }) {
   if (!doc && !error) {
     return (
       <div className="space-y-1.5">
-        <div className="aspect-[3/4] animate-pulse rounded-xl bg-surface-panel dark:bg-surface-panel" />
+        <div className="aspect-[3/4] animate-pulse rounded-xl bg-surface-panel dark:bg-surface-panel-dark shimmer" />
         <p className="truncate text-xs text-zinc-400 dark:text-zinc-500">{label}</p>
       </div>
     );
@@ -284,7 +319,9 @@ function FirstPageCard({ file, label }: { file: File; label: string }) {
   if (error || !doc) {
     return (
       <div className="space-y-1.5">
-        <div className="aspect-[3/4] rounded-xl border border-rose-500/30 bg-rose-500/10" />
+        <div className="aspect-[3/4] rounded-xl border border-rose-500/20 bg-rose-500/8 flex items-center justify-center">
+          <span className="text-xs text-rose-500/70">Error</span>
+        </div>
         <p className="truncate text-xs text-rose-600 dark:text-rose-400">{label}</p>
       </div>
     );
@@ -374,7 +411,7 @@ function InfoMode({ tool }: WorkspaceProps) {
         )}
         {loading && (
           <div className="flex items-center gap-2 px-1 text-sm text-zinc-500 dark:text-zinc-400">
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            <Loader2 className="h-4 w-4 animate-spin text-brand-500" aria-hidden="true" />
             Reading PDF…
           </div>
         )}
@@ -383,7 +420,7 @@ function InfoMode({ tool }: WorkspaceProps) {
       <aside className="min-w-0 space-y-4">
         <div className="card-surface p-5">
           <p className="text-sm font-semibold text-zinc-900 dark:text-white">{tool.name}</p>
-          <p className="mt-1.5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{tool.description}</p>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{tool.description}</p>
         </div>
         {file && (
           <FileList items={[file]} kind="pdf" onRemove={reset} />
@@ -483,14 +520,14 @@ function MetadataMode({ tool }: WorkspaceProps) {
             onReset={reset}
           />
         ) : info && file ? (
-          <div className="card-surface p-5">
-            <div className="mb-4 flex items-center justify-between">
+          <div className="card-surface overflow-hidden">
+            <div className="flex items-center justify-between border-b border-surface-line px-5 py-4 dark:border-surface-line-dark">
               <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Edit metadata</h3>
-              <span className="rounded-full bg-surface-panel px-2.5 py-1 text-xs text-zinc-500 dark:bg-surface-panel dark:text-zinc-400">
+              <span className="rounded-full border border-surface-line bg-surface-panel px-2.5 py-1 text-xs text-zinc-500 dark:border-surface-line-dark dark:bg-surface-panel-dark dark:text-zinc-400">
                 {info.page_count} page{info.page_count === 1 ? '' : 's'}
               </span>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 p-5">
               {editableParams.map((param) => (
                 <Field
                   key={param.name}
@@ -503,9 +540,10 @@ function MetadataMode({ tool }: WorkspaceProps) {
               ))}
               <Button variant="primary" size="lg" full disabled={busy} onClick={() => void save()}>
                 {busy ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Saving…
-                  </span>
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    Saving…
+                  </>
                 ) : (
                   'Save and download'
                 )}
@@ -521,7 +559,7 @@ function MetadataMode({ tool }: WorkspaceProps) {
       <aside className="min-w-0 space-y-4">
         <div className="card-surface p-5">
           <p className="text-sm font-semibold text-zinc-900 dark:text-white">{tool.name}</p>
-          <p className="mt-1.5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{tool.description}</p>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{tool.description}</p>
         </div>
         {file && <FileList items={[file]} kind="pdf" onRemove={reset} />}
       </aside>
@@ -534,10 +572,10 @@ function MetadataMode({ tool }: WorkspaceProps) {
 function StatCard({ label, value, tone }: { label: string; value: string; tone?: 'ok' | 'warn' }) {
   return (
     <div className="card-surface p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">{label}</p>
       <p
         className={cn(
-          'mt-1 text-lg font-semibold',
+          'mt-1.5 text-xl font-bold',
           tone === 'ok' && 'text-emerald-600 dark:text-emerald-400',
           tone === 'warn' && 'text-amber-600 dark:text-amber-400',
           !tone && 'text-zinc-900 dark:text-white',
@@ -553,21 +591,21 @@ function MetadataTable({ title, entries, max }: { title: string; entries: Displa
   const safeMax = max ?? entries.length;
   return (
     <div className="card-surface overflow-hidden">
-      <div className="border-b border-surface-line px-4 py-3 dark:border-surface-line-dark">
+      <div className="border-b border-surface-line px-5 py-3.5 dark:border-surface-line-dark">
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{title}</h3>
       </div>
       <ul className="divide-y divide-surface-line dark:divide-surface-line-dark">
         {entries.length === 0 && (
-          <li className="px-4 py-3 text-sm text-zinc-400 dark:text-zinc-500">Nothing found.</li>
+          <li className="px-5 py-3.5 text-sm text-zinc-400 dark:text-zinc-500">Nothing found.</li>
         )}
         {entries.slice(0, safeMax).map((entry) => (
-          <li key={entry.key} className="grid grid-cols-[120px_minmax(0,1fr)] gap-4 px-4 py-2 text-sm">
+          <li key={entry.key} className="grid grid-cols-[140px_minmax(0,1fr)] gap-4 px-5 py-2.5 text-sm transition-colors hover:bg-surface-panel/60 dark:hover:bg-surface-panel-dark/40">
             <span className="truncate font-medium text-zinc-500 dark:text-zinc-400">{entry.key}</span>
             <span className="break-words text-zinc-900 dark:text-zinc-200">{entry.value}</span>
           </li>
         ))}
         {entries.length > safeMax && (
-          <li className="px-4 py-2.5 text-xs text-zinc-400 dark:text-zinc-500">
+          <li className="px-5 py-2.5 text-xs text-zinc-400 dark:text-zinc-500">
             …and {entries.length - safeMax} more.
           </li>
         )}
