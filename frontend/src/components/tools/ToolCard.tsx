@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Tool } from '../../types';
 import { cn } from '../../lib/utils';
 
+<<<<<<< HEAD
 const kindLabel: Record<string, string> = {
   pdf: 'PDF',
   image: 'Image',
@@ -20,13 +21,26 @@ const kindColors: Record<string, string> = {
 };
 
 export function ToolCard({ tool, index }: { tool: Tool; index: number }) {
+=======
+interface ToolCardProps {
+  tool: Tool;
+  /** Adds an index-based stagger to the entry animation of a grid. */
+  index?: number;
+  compact?: boolean;
+}
+
+export function ToolCard({ tool, index = 0, compact = false }: ToolCardProps) {
+>>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
   const Icon = tool.icon;
   const delay = Math.min(index, 18) * 28;
 
   return (
     <Link
       to={`/tools/${tool.slug}`}
+      aria-label={`${tool.name} — ${tool.short}`}
+      style={{ animationDelay: `${Math.min(index, 12) * 24}ms` }}
       className={cn(
+<<<<<<< HEAD
         'group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-surface-line bg-surface p-5',
         'shadow-soft transition-all duration-200',
         'hover:-translate-y-1 hover:border-brand-300/70 hover:shadow-card',
@@ -52,10 +66,31 @@ export function ToolCard({ tool, index }: { tool: Tool; index: number }) {
 
         <ArrowRight
           className="h-4 w-4 text-zinc-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-brand-500 dark:text-zinc-600"
+=======
+        'group panel animate-rise relative flex flex-col gap-3 p-4 transition-colors duration-150 ease-out',
+        'hover:border-line-strong hover:bg-surface',
+        compact && 'gap-2 p-3.5',
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <span
+          className={cn(
+            'flex items-center justify-center rounded-md border border-line bg-surface-muted text-ink-muted transition-colors duration-150',
+            'group-hover:border-accent/40 group-hover:bg-accent-soft group-hover:text-accent',
+            compact ? 'h-8 w-8' : 'h-9 w-9',
+          )}
+          aria-hidden="true"
+        >
+          <Icon className={compact ? 'h-4 w-4' : 'h-4.5 w-4.5'} />
+        </span>
+        <ArrowRight
+          className="mt-1 h-4 w-4 shrink-0 text-line-strong transition-all duration-150 ease-out group-hover:translate-x-0.5 group-hover:text-accent"
+>>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
           aria-hidden="true"
         />
       </div>
 
+<<<<<<< HEAD
       {/* Body */}
       <div className="relative flex-1">
         <h3 className="font-semibold text-zinc-900 transition-colors duration-150 group-hover:text-brand-700 dark:text-white dark:group-hover:text-brand-300">
@@ -86,6 +121,22 @@ export function ToolCard({ tool, index }: { tool: Tool; index: number }) {
         </span>
       </div>
 
+=======
+      <div className="min-w-0">
+        <h3 className={cn('font-semibold tracking-[-0.01em] text-ink', compact ? 'text-sm' : 'text-[15px]')}>{tool.name}</h3>
+        <p className="mt-1 text-sm leading-relaxed text-ink-muted text-wrap-pretty">{tool.short}</p>
+      </div>
+
+      {!compact && (
+        <p className="mt-auto flex items-center gap-1.5 text-2xs font-medium uppercase tracking-[0.08em] text-ink-subtle">
+          <span>{tool.inputLabel}</span>
+          <span aria-hidden="true" className="text-line-strong">
+            →
+          </span>
+          <span>{tool.outputLabel}</span>
+        </p>
+      )}
+>>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
     </Link>
   );
 }

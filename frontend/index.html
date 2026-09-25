@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<<<<<<< HEAD
     <meta name="description" content="MyPDFTools — Merge, split, compress, convert and secure PDFs instantly. Free, private, no sign-up required. Your files are never stored." />
     <meta name="keywords" content="PDF tools, merge PDF, split PDF, compress PDF, convert PDF, protect PDF, free PDF tools" />
     <meta property="og:title" content="MyPDFTools — Every PDF tool you need, in one place" />
@@ -22,6 +23,36 @@
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const isDark = stored === 'dark' || (!stored && prefersDark);
         if (isDark) document.documentElement.classList.add('dark');
+=======
+    <title>MyPDFTools — quietly powerful document tools</title>
+    <meta
+      name="description"
+      content="Merge, split, organise, compress, watermark, protect and convert PDFs in the browser. Live page previews, honest compression reporting, and files deleted straight after processing."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#FAF9F6" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0E0F10" media="(prefers-color-scheme: dark)" />
+    <meta property="og:title" content="MyPDFTools — quietly powerful document tools" />
+    <meta
+      property="og:description"
+      content="A focused PDF toolbox: merge, split, organise, compress, watermark, protect and convert. No accounts, no storage."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      // Resolve the theme before first paint so there is no flash of the wrong
+      // palette. Kept inline and dependency-free on purpose.
+      (function () {
+        try {
+          var stored = localStorage.getItem('mypdftools.theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var dark = stored === 'dark' || (stored !== 'light' && prefersDark);
+          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        } catch (error) {
+          /* localStorage unavailable — fall back to the light palette. */
+        }
+>>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
       })();
     </script>
   </head>

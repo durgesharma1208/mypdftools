@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useCallback, useRef, useState } from 'react';
 import { CheckCircle2, Loader2, Upload } from 'lucide-react';
 import type { PdfInfo, Tool, ToolParam, UploadedFile } from '../../types';
@@ -22,10 +23,20 @@ import {
 import { OcrWorkspace } from './OcrWorkspace';
 import { SummaryWorkspace } from './SummaryWorkspace';
 import { AskPdfWorkspace } from './AskPdfWorkspace';
+=======
+import type { Tool } from '../../types';
+import { InspectorWorkspace } from './InspectorWorkspace';
+import { MetadataWorkspace } from './MetadataWorkspace';
+import { ToolWorkspace } from './ToolWorkspace';
+>>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
 
-interface WorkspaceProps {
-  tool: Tool;
+/** Chooses the right workspace layout for a tool. */
+export function Workspace({ tool }: { tool: Tool }) {
+  if (tool.workspace === 'inspector') return <InspectorWorkspace tool={tool} />;
+  if (tool.workspace === 'metadata') return <MetadataWorkspace tool={tool} />;
+  return <ToolWorkspace tool={tool} />;
 }
+<<<<<<< HEAD
 
 export function Workspace({ tool }: WorkspaceProps) {
   if (tool.mode === 'info') return <InfoMode tool={tool} />;
@@ -631,3 +642,5 @@ function keyToLabel(key: string): string {
 function formatNumber(value: number): string {
   return value % 1 === 0 ? String(value) : value.toFixed(2);
 }
+=======
+>>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
