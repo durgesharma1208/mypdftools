@@ -7,17 +7,6 @@ import { cn } from '../../lib/utils';
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
-<<<<<<< HEAD
-    <Link to={to} className={cn('group inline-flex items-center gap-2.5', className)} aria-label="MyPDFTools home">
-      <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-brand-gradient text-white shadow-sm shadow-brand-500/30 transition-all duration-200 group-hover:scale-105 group-hover:shadow-glow-sm">
-        <FileText className="h-5 w-5" aria-hidden="true" />
-      </span>
-      {withText && (
-        <span className="text-[17px] font-bold tracking-tight text-zinc-900 dark:text-white">
-          MyPDF<span className="text-brand-500 dark:text-brand-400">Tools</span>
-        </span>
-      )}
-=======
     <svg viewBox="0 0 28 28" className={cn('h-7 w-7', className)} aria-hidden="true" focusable="false">
       <rect
         x="4.6"
@@ -59,7 +48,6 @@ export function Logo({ className }: { className?: string }) {
       <span className="text-[17px] font-semibold tracking-[-0.02em] text-ink">
         MyPDF<span className="text-accent">Tools</span>
       </span>
->>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
     </Link>
   );
 }

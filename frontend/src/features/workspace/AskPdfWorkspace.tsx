@@ -240,7 +240,6 @@ export function AskPdfWorkspace({ tool }: AskPdfWorkspaceProps) {
             accept={tool.accept}
             multiple={false}
             label="Drop your PDF to ask questions"
-            sublabel="or click to browse"
             hint="PDF documents · up to 50 MB"
             onFiles={handleFiles}
           />
@@ -260,7 +259,7 @@ export function AskPdfWorkspace({ tool }: AskPdfWorkspaceProps) {
                   {fileItem.file.name}
                 </p>
                 <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                  {pageCount ? `${pageCount} page${pageCount === 1 ? '' : 's'}` : formatBytes(fileItem.size)}
+                  {pageCount ? `${pageCount} page${pageCount === 1 ? '' : 's'}` : formatBytes(fileItem.file.size)}
                   {ocrUsed && ' · OCR applied'}
                   {sessionLoading && ' · Preparing text index…'}
                 </p>

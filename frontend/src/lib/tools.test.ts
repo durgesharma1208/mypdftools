@@ -15,9 +15,6 @@ function routeDirectory(): string {
 }
 
 const ROUTE_DIR = routeDirectory();
-const ROUTE_SOURCES = ['pdf.py', 'conversion.py']
-  .map((name) => readFileSync(resolve(ROUTE_DIR, name), 'utf8'))
-  .join('\n');
 
 interface RouteSignature {
   path: string;
@@ -25,10 +22,12 @@ interface RouteSignature {
 }
 
 /** Every `@router.post("/x")` block, with the form parameters it declares. */
-function routeSignatures(source: string): RouteSignature[] {
+function routeSignatures(filename: string, prefix: string = ''): RouteSignature[] {
+  const source = readFileSync(resolve(ROUTE_DIR, filename), 'utf8');
   const blocks = source.split('@router.post(').slice(1);
   return blocks.map((block) => {
-    const path = /^"([^"]+)"/.exec(block)?.[1] ?? '';
+    const rawPath = /^"([^"]+)"/.exec(block)?.[1] ?? '';
+    const path = `${prefix}${rawPath}`;
     const boundaries = [block.indexOf('\n):'), block.indexOf(') ->')].filter((index) => index !== -1);
     const header = boundaries.length > 0 ? block.slice(0, Math.min(...boundaries) + 2) : block.slice(0, 600);
     const params = new Set<string>();
@@ -39,7 +38,12 @@ function routeSignatures(source: string): RouteSignature[] {
   });
 }
 
-const SIGNATURES = routeSignatures(ROUTE_SOURCES);
+const SIGNATURES: RouteSignature[] = [
+  ...routeSignatures('pdf.py', ''),
+  ...routeSignatures('conversion.py', ''),
+  ...routeSignatures('ocr.py', '/ocr'),
+  ...routeSignatures('ai.py', '/ai'),
+];
 
 function signatureFor(endpoint: string): RouteSignature | undefined {
   const path = endpoint.replace('/api', '');

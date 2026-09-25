@@ -18,9 +18,35 @@ interface UseWorkspaceOptions {
   onFilesChanged?: () => void;
 }
 
-function toFileItems(files: File[]): UploadedFile[] {
-  return files.map((file) => ({ id: uniqueId(), file, sizeLabel: formatBytes(file.size) }));
+export function buildFileItem(file: File): UploadedFile {
+  return { id: uniqueId(), file, sizeLabel: formatBytes(file.size) };
 }
+
+export function validateIncomingFile(tool: Tool, file: File): string | null {
+  const ext = '.' + (file.name.split('.').pop() ?? '').toLowerCase();
+  const acceptList = tool.accept.split(',').map((item) => item.trim().toLowerCase());
+  const allowed = acceptList.some((pattern) => {
+    if (pattern.startsWith('.')) return ext === pattern;
+    if (pattern.includes('*')) {
+      const [typePrefix] = pattern.split('*');
+      return Boolean(typePrefix && file.type.toLowerCase().startsWith(typePrefix));
+    }
+    return file.type.toLowerCase() === pattern;
+  });
+  if (!allowed) {
+    return `File format not supported. Accepted formats: ${tool.accept}`;
+  }
+  const maxBytes = 50 * 1024 * 1024;
+  if (file.size > maxBytes) {
+    return 'File exceeds maximum limit of 50 MB.';
+  }
+  return null;
+}
+
+function toFileItems(files: File[]): UploadedFile[] {
+  return files.map((file) => buildFileItem(file));
+}
+
 
 /**
  * State machine behind every tool workspace: file selection, client-side

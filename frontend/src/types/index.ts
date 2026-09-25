@@ -1,35 +1,25 @@
 import type { LucideIcon } from 'lucide-react';
 
-<<<<<<< HEAD
+/** Tool grouping used by the library page, footer and home page. */
 export type CategoryKey =
-  | 'organization'
-  | 'editing'
+  | 'organise'
+  | 'edit'
+  | 'convert-to'
+  | 'convert-from'
   | 'security'
-  | 'convert'
-  | 'image'
-  | 'office'
   | 'utility'
   | 'ocr'
   | 'ai';
-=======
-/** Tool grouping used by the library page, footer and home page. */
-export type CategoryKey = 'organise' | 'edit' | 'convert-to' | 'convert-from' | 'security' | 'utility';
->>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
 
 export type InputKind = 'pdf' | 'image' | 'word' | 'excel' | 'ppt';
 
 export type OutputKind = 'pdf' | 'zip' | 'docx' | 'txt' | 'json' | 'chat' | 'summary' | 'none';
 
-
 /** Page-level preview behaviour a tool needs in its workspace. */
 export type PreviewMode = 'none' | 'view' | 'select' | 'order';
 
-<<<<<<< HEAD
-export type ToolMode = 'standard' | 'info' | 'metadata' | 'ocr' | 'summary' | 'ask';
-
-=======
 /** Workspaces that need bespoke layout instead of the standard flow. */
-export type WorkspaceKind = 'standard' | 'inspector' | 'metadata';
+export type WorkspaceKind = 'standard' | 'inspector' | 'metadata' | 'ocr' | 'summary' | 'ask';
 
 /** Server capability a tool depends on. */
 export type CapabilityKey = 'office';
@@ -39,7 +29,6 @@ export interface ToolParamOption {
   label: string;
   description?: string;
 }
->>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
 
 export interface ToolParam {
   name: string;
@@ -121,7 +110,6 @@ export interface UploadResult {
   size: number;
 }
 
-<<<<<<< HEAD
 export interface OcrLanguage {
   code: string;
   name: string;
@@ -183,7 +171,7 @@ export interface ChatMessage {
   sources?: AiSource[];
   timestamp: number;
 }
-=======
+
 export interface ServerCapabilities {
   /** True while the first health check is still in flight. */
   checking: boolean;
@@ -197,4 +185,3 @@ export interface ServerCapabilities {
 
 /** Processing phases shown to the user, in order. */
 export type WorkspacePhase = 'idle' | 'ready' | 'uploading' | 'processing' | 'preparing' | 'done' | 'error';
->>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb

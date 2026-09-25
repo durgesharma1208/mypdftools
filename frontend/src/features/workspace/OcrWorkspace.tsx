@@ -304,7 +304,6 @@ export function OcrWorkspace({ tool }: OcrWorkspaceProps) {
             accept={tool.accept}
             multiple={false}
             label="Drop your scanned PDF or image"
-            sublabel="or click to browse"
             hint="Supports PDF, JPG, and PNG files · up to 50 MB"
             onFiles={handleFiles}
           />
@@ -385,7 +384,7 @@ export function OcrWorkspace({ tool }: OcrWorkspaceProps) {
 
               {fileItem && (
                 <p className="text-center text-xs text-zinc-400 dark:text-zinc-500">
-                  1 file selected ({formatBytes(fileItem.size)})
+                  1 file selected ({formatBytes(fileItem.file.size)})
                 </p>
               )}
 

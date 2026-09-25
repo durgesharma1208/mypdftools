@@ -6,12 +6,8 @@ import {
   ImageDown,
   FileSpreadsheet,
   FileText,
-<<<<<<< HEAD
   FileType,
-
-=======
   FileType2,
->>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
   Gauge,
   Hash,
   ImagePlus,
@@ -20,12 +16,8 @@ import {
   ListOrdered,
   Lock,
   LockOpen,
-<<<<<<< HEAD
   MessageSquareQuote,
-  PenTool,
-=======
   PenLine,
->>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
   Presentation,
   RotateCw,
   ScanText,
@@ -45,17 +37,6 @@ import type { CategoryMeta, CategoryKey, Tool } from '../types';
  * — see backend/app/api/routes/{pdf,conversion}.py.
  */
 export const CATEGORIES: CategoryMeta[] = [
-<<<<<<< HEAD
-  { key: 'organization', label: 'PDF Organization', blurb: 'Combine, rearrange and compress documents.', icon: LayoutGrid },
-  { key: 'editing', label: 'PDF Editing', blurb: 'Fine-tune, annotate and clean up pages.', icon: PenTool },
-  { key: 'security', label: 'PDF Security', blurb: 'Lock and unlock your documents.', icon: ShieldCheck },
-  { key: 'convert', label: 'PDF Conversion', blurb: 'Turn Office documents into clean, shareable PDFs.', icon: ArrowLeftRight },
-  { key: 'image', label: 'Image to PDF', blurb: 'Turn images into polished PDF documents.', icon: FileImage },
-  { key: 'office', label: 'PDF to Office', blurb: 'Export PDFs into editable Office formats.', icon: Briefcase },
-  { key: 'utility', label: 'Utility Tools', blurb: 'Inspect and analyze your PDF files.', icon: Wrench },
-  { key: 'ocr', label: 'OCR & Recognition', blurb: 'Turn scanned documents into searchable and editable files.', icon: ScanText },
-  { key: 'ai', label: 'AI Document Intelligence', blurb: 'Summarize documents and ask questions grounded in facts.', icon: Sparkles },
-=======
   {
     key: 'organise',
     label: 'Organise PDF',
@@ -92,7 +73,18 @@ export const CATEGORIES: CategoryMeta[] = [
     blurb: 'Inspect a document before you commit to changing it.',
     icon: SlidersHorizontal,
   },
->>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
+  {
+    key: 'ocr',
+    label: 'OCR & Recognition',
+    blurb: 'Turn scanned documents into searchable and editable files.',
+    icon: ScanText,
+  },
+  {
+    key: 'ai',
+    label: 'AI Document Intelligence',
+    blurb: 'Summarize documents and ask questions grounded in facts.',
+    icon: Sparkles,
+  },
 ];
 
 
@@ -746,13 +738,15 @@ export const TOOLS: Tool[] = [
     icon: ScanText,
     kind: 'pdf',
     accept: 'application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png',
-    filesLabel: 'PDF or image',
+    inputLabel: 'PDF or image',
     multiple: false,
     output: 'pdf',
+    outputLabel: 'Searchable PDF',
     endpoint: '/api/ocr/pdf',
     fileField: 'file',
     preview: 'view',
-    mode: 'ocr',
+    workspace: 'ocr',
+    action: 'Run OCR to PDF',
   },
   {
     slug: 'ocr-to-text',
@@ -765,13 +759,15 @@ export const TOOLS: Tool[] = [
     icon: FileText,
     kind: 'pdf',
     accept: 'application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png',
-    filesLabel: 'PDF or image',
+    inputLabel: 'PDF or image',
     multiple: false,
     output: 'txt',
+    outputLabel: 'Text file',
     endpoint: '/api/ocr/text',
     fileField: 'file',
     preview: 'view',
-    mode: 'ocr',
+    workspace: 'ocr',
+    action: 'Extract text',
   },
   {
     slug: 'ocr-to-word',
@@ -784,13 +780,15 @@ export const TOOLS: Tool[] = [
     icon: FileType,
     kind: 'pdf',
     accept: 'application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png',
-    filesLabel: 'PDF or image',
+    inputLabel: 'PDF or image',
     multiple: false,
     output: 'docx',
+    outputLabel: 'Word document',
     endpoint: '/api/ocr/word',
     fileField: 'file',
     preview: 'view',
-    mode: 'ocr',
+    workspace: 'ocr',
+    action: 'Convert to Word',
   },
   {
     slug: 'pdf-summary',
@@ -803,13 +801,15 @@ export const TOOLS: Tool[] = [
     icon: Sparkles,
     kind: 'pdf',
     accept: 'application/pdf,.pdf',
-    filesLabel: 'PDF document',
+    inputLabel: 'PDF document',
     multiple: false,
     output: 'summary',
+    outputLabel: 'Summary report',
     endpoint: '/api/ai/summary',
     fileField: 'pdf_file',
     preview: 'view',
-    mode: 'summary',
+    workspace: 'summary',
+    action: 'Generate summary',
   },
   {
     slug: 'ask-pdf',
@@ -822,26 +822,22 @@ export const TOOLS: Tool[] = [
     icon: MessageSquareQuote,
     kind: 'pdf',
     accept: 'application/pdf,.pdf',
-    filesLabel: 'PDF document',
+    inputLabel: 'PDF document',
     multiple: false,
     output: 'chat',
+    outputLabel: 'Interactive Q&A',
     endpoint: '/api/ai/ask',
     fileField: 'pdf_file',
     preview: 'view',
-    mode: 'ask',
+    workspace: 'ask',
+    action: 'Ask PDF',
   },
 ];
 
-<<<<<<< HEAD
-
-export function getTool(slug: string): Tool | undefined {
-  return TOOLS.find((tool) => tool.slug === slug);
-=======
 export const TOOL_MAP: Record<string, Tool> = Object.fromEntries(TOOLS.map((tool) => [tool.slug, tool]));
 
 export function getTool(slug: string | undefined): Tool | undefined {
   return slug ? TOOL_MAP[slug] : undefined;
->>>>>>> 5d0f9ee86c7ec7d9c5a0815445eb7297e97c22eb
 }
 
 export function toolsInCategory(key: CategoryKey): Tool[] {

@@ -339,7 +339,6 @@ export function SummaryWorkspace({ tool }: SummaryWorkspaceProps) {
               accept={tool.accept}
               multiple={false}
               label="Drop your PDF to summarize"
-              sublabel="or click to browse"
               hint="PDF files · up to 50 MB"
               onFiles={handleFiles}
             />
